@@ -27,8 +27,22 @@ def curve_shape(curve):
     return None
 
 
+def skin_shape(curve):
+    """解析局部输出曲线对应的 FK 蒙皮曲线，旧曲线保持原样。"""
+    shape = curve_shape(curve)
+    if not shape:
+        return None
+    transform = (mc.listRelatives(shape, p=True, f=True) or [shape])[0]
+    if mc.objExists(transform + '.localFkCurve'):
+        linked = mc.listConnections(transform + '.localFkCurve', s=True, d=False) or []
+        if linked:
+            return curve_shape(linked[0])
+    return shape
+
+
 def skin_of(shape):
     """取 shape 上的 skinCluster"""
+    shape = skin_shape(shape)
     if not shape:
         return None
     found = mc.listConnections(shape, type='skinCluster') or []
@@ -50,7 +64,7 @@ def list_skinned_curves():
             continue
         parents = mc.listRelatives(shape, p=True, f=True) or []
         transform = parents[0] if parents else shape
-        if transform in seen:
+        if mc.objExists(transform + '.localCurveOutput') or transform in seen:
             continue
         seen.add(transform)
         result.append((transform, skin))
@@ -93,7 +107,7 @@ def smooth_weights(curve, indices=None, iterations=3, strength=0.5):
     strength   : 每次迭代向邻居均值靠拢的比例 0~1
     返回 True/False
     """
-    shape = curve_shape(curve)
+    shape = skin_shape(curve)
     skin = skin_of(shape)
     if not skin:
         return False
@@ -148,6 +162,10 @@ def smooth_weights(curve, indices=None, iterations=3, strength=0.5):
                 merged = [1.0 / len(merged)] * len(merged)
             else:
                 merged = [x / total for x in merged]
+            transform = (mc.listRelatives(shape, p=True, f=True) or [shape])[0]
+            if mc.objExists(transform + '.localSupportData'):
+                import splineik_local
+                merged = splineik_local.project_weights(shape, merged, i, influences)
             updated[i] = merged
         weights = updated
 
@@ -164,6 +182,10 @@ def smooth_weights(curve, indices=None, iterations=3, strength=0.5):
 def linearize_weights(curve):
     """把整条曲线的权重按 CV 位置线性重排（首尾 1 -> 0，中间平滑过渡）"""
     shape = curve_shape(curve)
+    transform = (mc.listRelatives(shape, p=True, f=True) or [shape])[0] if shape else curve
+    if mc.objExists(transform + '.localSupportData'):
+        mc.warning(u'局部曲线模式禁止线性重排；请使用保留局部影响范围的平滑功能。')
+        return False
     skin = skin_of(shape)
     if not skin:
         return False
@@ -287,6 +309,11 @@ def linearize(*args):
     """按位置重排整条曲线的权重"""
     curve = _pick_curve()
     if not curve:
+        return
+    shape = curve_shape(curve)
+    transform = (mc.listRelatives(shape, p=True, f=True) or [shape])[0]
+    if mc.objExists(transform + '.localSupportData'):
+        _error(u'局部曲线模式禁止线性重排，请使用局部范围内的权重平滑。')
         return
     if linearize_weights(curve):
         _set_info(u'已线性化权重：%s' % curve.split('|')[-1])

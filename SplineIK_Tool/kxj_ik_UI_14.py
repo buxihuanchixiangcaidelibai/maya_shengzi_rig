@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: cp936 -*-
+# -*- coding: utf-8 -*-
 import maya.cmds as mc
 import kxj_ik_dy305 as kxj_ik
 reload(kxj_ik)
@@ -7,6 +7,10 @@ import splineik_weight as weight
 reload(weight)
 import splineik_path_ui as pathui
 reload(pathui)
+import splineik_local as localrig
+reload(localrig)
+import splineik_local_ui as localui
+reload(localui)
 class ik_UI(object):
     def __init__(self):
         self.UI()
@@ -14,7 +18,7 @@ class ik_UI(object):
         if mc.window("splineik",exists=1):
            mc.deleteUI("splineik")
         #
-        a=mc.window("splineik",title=u"ÑÀÇ©__spline_v2.0")
+        a=mc.window("splineik",title=u"ç‰™ç­¾__spline_v2.0")
         ##################################################
         form = mc.formLayout()
         tabs = mc.tabLayout(imw=5, imh=5)
@@ -25,61 +29,62 @@ class ik_UI(object):
         self.s1=mc.separator(vis = 1,style='in',w = 300,h=5) 
         mc.setParent('..')
         mc.columnLayout(adj=0,rs=1)
-        self.s2=mc.text(l=u'1.ÏÈ»­Ò»ÌõNurbsÇúÏß',h=30)
+        self.s2=mc.text(l=u'1.å…ˆç”»ä¸€æ¡Nurbsæ›²çº¿',h=30)
         mc.setParent('..')
         mc.columnLayout(adj=1,rs=1)
         self.s3=mc.separator(vis = 1,style='in',w = 300,h=5)
         mc.setParent('..')
         mc.columnLayout(adj=0,rs=1)
-        self.s4=mc.text(l=u'2.spline²ÎÊıÉèÖÃ',h=30)
+        self.s4=mc.text(l=u'2.splineå‚æ•°è®¾ç½®',h=30)
         mc.setParent('..')
         mc.columnLayout(adj=1,rs=3)
-        self.s5=mc.textFieldGrp(l=u'Ãû×Ö:          ',cw2=[80,200],adj=2)
-        self.s6=mc.floatSliderGrp( label=u'¿ØÖÆÆ÷ÊıÁ¿:    ', field=True,cw3=[80,40,155],min=0, max=10,fmn=0,fmx=1000,pre=0,v=2,cc=lambda *args:self.Slider())
-        self.s7=mc.floatSliderGrp( label=u'¹Ç÷ÀÊıÁ¿:      ', field=True,cw3=[80,40,155],min=0, max=50,fmn=0,fmx=1000,pre=0,v=5)
+        self.s5=mc.textFieldGrp(l=u'åå­—:          ',cw2=[80,200],adj=2)
+        self.s6=mc.floatSliderGrp( label=u'æ§åˆ¶å™¨æ•°é‡:    ', field=True,cw3=[80,40,155],min=0, max=10,fmn=0,fmx=1000,pre=0,v=2,cc=lambda *args:self.Slider())
+        self.s7=mc.floatSliderGrp( label=u'éª¨éª¼æ•°é‡:      ', field=True,cw3=[80,40,155],min=0, max=50,fmn=0,fmx=1000,pre=0,v=5)
         mc.setParent('..')
         mc.paneLayout(configuration='vertical2')
-        self.s8=mc.optionMenu( label=u'     »ù±¾³¯Ïò:     ',cc=lambda *args:self.ui_xyz())
+        self.s8=mc.optionMenu( label=u'     åŸºæœ¬æœå‘:     ',cc=lambda *args:self.ui_xyz())
         self.s8_1=mc.menuItem( label='x' )
         self.s8_2=mc.menuItem( label='y')
         self.s8_3=mc.menuItem( label='z' )
-        self.s9=mc.optionMenu( label=u'    ÏòÉÏ³¯Ïò:     ')
+        self.s9=mc.optionMenu( label=u'    å‘ä¸Šæœå‘:     ')
         self.s9_1=mc.menuItem( label='x' ,en=0)
         self.s9_2=mc.menuItem( label='y' )
         self.s9_3=mc.menuItem( label='z' )
         mc.optionMenu(self.s9,e=1,sl=2)  
         mc.setParent('..')
         mc.paneLayout(configuration='vertical3')
-        self.s10=mc.checkBoxGrp( ncb=2, label=u'    ÊôĞÔ£º        ', labelArray2=[u'¶¯Á¦Ñ§', u'×Ô¶¯ºÏ²¢'],cw3=[80,60,50],en2=0,cc1=lambda *args:self.check() )
-        self.stretchingBox=mc.checkBox( label=u'À­Éì' ,v=1)
-        self.add1=mc.optionMenu( label=u'Ä£Ê½')
+        self.s10=mc.checkBoxGrp( ncb=2, label=u'    å±æ€§ï¼š        ', labelArray2=[u'åŠ¨åŠ›å­¦', u'è‡ªåŠ¨åˆå¹¶'],cw3=[80,60,50],en2=0,cc1=lambda *args:self.check() )
+        self.stretchingBox=mc.checkBox( label=u'æ‹‰ä¼¸' ,v=1)
+        self.add1=mc.optionMenu( label=u'æ¨¡å¼')
         self.add1_1=mc.menuItem( label=u'path' )
         self.add1_2=mc.menuItem( label=u'point' )
         mc.optionMenu(self.add1,e=1,sl=1)
         mc.setParent('..')
         mc.columnLayout(adj=1,rs=3)
         mc.paneLayout(configuration='vertical2',swp=2)
-        self.ss1=mc.floatSliderGrp(label=u'»¬¶¯Ëõ·Å:      ',field=True,cw3=[78,40,125],min=1, max=10,fmn=1,fmx=1000,pre=0,v=1,en=0)
+        self.ss1=mc.floatSliderGrp(label=u'æ»‘åŠ¨ç¼©æ”¾:      ',field=True,cw3=[78,40,125],min=1, max=10,fmn=1,fmx=1000,pre=0,v=1,en=0)
         self.ss2=mc.checkBox(v=0,l='',cc=lambda *args:self.slither_scale())  
         mc.setParent('..')
-        pathui.build()
+        self.path_handles=pathui.build()
+        self.mode_ui=localui.ModeUI(self)
         self.s11=mc.separator(vis = 1,style='in',w = 300,h=5) 
-        self.s13=mc.textFieldButtonGrp( label='3.´´½¨¿ØÖÆÆ÷Ğ£Öá²Î¿¼ÎïÌå      ',buttonLabel='´´½¨',cw3=(150,0,50),adj=3,bc=lambda *args:self.establish_loc())
-        #self.s12=mc.text(l=u'3.´´½¨¿ØÖÆÆ÷Ğ£Öá²Î¿¼ÎïÌå:')
-        #self.s13=mc.button(l=u'´´½¨',w=100,h=20,c=lambda *args:self.establish_loc())
+        self.s13=mc.textFieldButtonGrp( label=u'3.åˆ›å»ºæ§åˆ¶å™¨æ ¡è½´å‚è€ƒç‰©ä½“      ',buttonLabel=u'åˆ›å»º',cw3=(150,0,50),adj=3,bc=lambda *args:self.establish_loc())
+        #self.s12=mc.text(l=u'3.åˆ›å»ºæ§åˆ¶å™¨æ ¡è½´å‚è€ƒç‰©ä½“:')
+        #self.s13=mc.button(l=u'åˆ›å»º',w=100,h=20,c=lambda *args:self.establish_loc())
         self.s14=mc.separator(vis = 1,style='in',w = 300,h=5)
-        self.s16=mc.textFieldButtonGrp( label='4.´´½¨spline:                            ',buttonLabel='´´½¨',cw3=(150,0,50),adj=3,bc=lambda *args:self.establish_spline())
-        #self.s15=mc.text(l=u'4.´´½¨spline:')
-        #self.s16=mc.button(l=u'´´½¨',w=100,h=20,c=lambda *args:self.establish_spline())
+        self.s16=mc.textFieldButtonGrp( label=u'4.åˆ›å»ºspline:                            ',buttonLabel=u'åˆ›å»º',cw3=(150,0,50),adj=3,bc=lambda *args:self.establish_spline())
+        #self.s15=mc.text(l=u'4.åˆ›å»ºspline:')
+        #self.s16=mc.button(l=u'åˆ›å»º',w=100,h=20,c=lambda *args:self.establish_spline())
         mc.setParent('..')
         self.s17=mc.separator(vis = 1,style='in',w = 300,h=5)
         mc.paneLayout(configuration='vertical2')
-        self.s18=mc.button(l=u'´´½¨Dynamic¿ØÖÆÆ÷',h=20,c=lambda *args:self.new_dy())
-        self.s19=mc.button(l=u'ºÏ²¢Dynamic',h=20,c=lambda *args:self.combine_dy())
+        self.s18=mc.button(l=u'åˆ›å»ºDynamicæ§åˆ¶å™¨',h=20,c=lambda *args:self.new_dy())
+        self.s19=mc.button(l=u'åˆå¹¶Dynamic',h=20,c=lambda *args:self.combine_dy())
         mc.setParent('..')
         mc.columnLayout(adj=1,rs=3)
         mc.separator(vis = 1,style='in',w = 300,h=5)
-        self.s20=mc.button(l=u'É¾³ıspline',h=20,c=lambda *args:self.deltet_ss())
+        self.s20=mc.button(l=u'åˆ é™¤spline',h=20,c=lambda *args:self.deltet_ss())
         mc.separator(vis = 1,style='in',w = 300,h=5)
         mc.setParent('..')
 
@@ -90,30 +95,30 @@ class ik_UI(object):
         mc.columnLayout(adj=1,rs=8)
         mc.paneLayout(configuration='vertical2')
         mc.columnLayout(adj=1,rs=8)
-        self.d1=mc.text(l=u'¶¯Á¦Ñ§')
+        self.d1=mc.text(l=u'åŠ¨åŠ›å­¦')
         self.d2=mc.textScrollList( numberOfRows=12, allowMultiSelection=True,
                                   showIndexedItem=4,sc=lambda *args:self.dyn_select())
         mc.setParent('..')
         mc.columnLayout(adj=1,rs=8)
-        self.d3=mc.text(l=u'×´Ì¬')
+        self.d3=mc.text(l=u'çŠ¶æ€')
         self.d4=mc.textScrollList( numberOfRows=12, allowMultiSelection=True,
                                     showIndexedItem=4,w=50)
         mc.setParent('..')
         mc.setParent('..')
-        self.d13=mc.button(l=u'Ë¢ĞÂ',w=150,c=lambda *args:self.dyn_tabulation())
-        self.d131=mc.button(l=u'Ñ¡×ÅËùÓĞ¶¯Á¦Ñ§ÇúÏß',w=150,c=lambda *args:self.select_allDyn_Fun())
+        self.d13=mc.button(l=u'åˆ·æ–°',w=150,c=lambda *args:self.dyn_tabulation())
+        self.d131=mc.button(l=u'é€‰ç€æ‰€æœ‰åŠ¨åŠ›å­¦æ›²çº¿',w=150,c=lambda *args:self.select_allDyn_Fun())
         mc.setParent('..')
         mc.columnLayout(adj=1,rs=8)
-        self.d5=mc.button(l=u'¿ªÆô¶¯Á¦Ñ§',c=lambda *args:self.Color(),bgc=[0,1,0.7])
-        self.d6=mc.button(l=u'´´½¨·½ĞÎÅö×²Ìå',w=130,c=lambda *args:self.dy_createCollider(6))
-        self.d7=mc.button(l=u'´´½¨Ô²ĞÎÅö×²Ìå',w=130,c=lambda *args:self.dy_createCollider(5))
-        self.d8=mc.textFieldGrp( label=u'bakeÆğÊ¼Ö¡',cw2=[60,30] ,en=0)
-        self.d9=mc.textFieldGrp( label=u'bake½áÊøÖ¡',cw2=[60,30] ,en=0)
-        self.d10=mc.checkBox( label=u'×Ô¶¯',v=1 ,cc=lambda *args:self.bake_automatic()) 
-        self.d11=mc.button(l=u'bake¶¯»­µ½¿ØÖÆÆ÷',w=130,c=lambda *args:self.bake(None,'ctrl'))
-        self.d12=mc.button(l=u'É¾³ı¿ØÖÆÆ÷¶¯»­',w=130,c=lambda *args:kxj_ik.ik().delete_key())
-        self.d13=mc.button(l=u'bake¶¯»­µ½¹Ç÷À',w=130,c=lambda *args:self.bake(None,'jnt'))
-        self.d14=mc.button(l=u'É¾³ı¹Ç÷À¶¯»­',w=130,c=lambda *args:kxj_ik.ik().delete_jnt_key())
+        self.d5=mc.button(l=u'å¼€å¯åŠ¨åŠ›å­¦',c=lambda *args:self.Color(),bgc=[0,1,0.7])
+        self.d6=mc.button(l=u'åˆ›å»ºæ–¹å½¢ç¢°æ’ä½“',w=130,c=lambda *args:self.dy_createCollider(6))
+        self.d7=mc.button(l=u'åˆ›å»ºåœ†å½¢ç¢°æ’ä½“',w=130,c=lambda *args:self.dy_createCollider(5))
+        self.d8=mc.textFieldGrp( label=u'bakeèµ·å§‹å¸§',cw2=[60,30] ,en=0)
+        self.d9=mc.textFieldGrp( label=u'bakeç»“æŸå¸§',cw2=[60,30] ,en=0)
+        self.d10=mc.checkBox( label=u'è‡ªåŠ¨',v=1 ,cc=lambda *args:self.bake_automatic())
+        self.d11=mc.button(l=u'bakeåŠ¨ç”»åˆ°æ§åˆ¶å™¨',w=130,c=lambda *args:self.bake(None,'ctrl'))
+        self.d12=mc.button(l=u'åˆ é™¤æ§åˆ¶å™¨åŠ¨ç”»',w=130,c=lambda *args:self.clear_animation('ctrl'))
+        self.d13=mc.button(l=u'bakeåŠ¨ç”»åˆ°éª¨éª¼',w=130,c=lambda *args:self.bake(None,'jnt'))
+        self.d14=mc.button(l=u'åˆ é™¤éª¨éª¼åŠ¨ç”»',w=130,c=lambda *args:self.clear_animation('jnt'))
         mc.setParent('..')
         
         mc.setParent('..')
@@ -130,6 +135,7 @@ class ik_UI(object):
         mc.tabLayout( tabs, edit=True, tabLabel=((child1, u'rigging'),(child2, u'animation'),(child3, u'weight')) )
         mc.window("splineik",e=1,wh=(400,400))
         mc.showWindow(a)
+        self.mode_ui.apply()
         self.dyn_tabulation()
     def ui_xyz(self):
         sacv=mc.optionMenu(self.s8,q=1,sl=1)
@@ -149,10 +155,15 @@ class ik_UI(object):
             mc.menuItem(self.s9_1,e=1,en=1)
             mc.menuItem(self.s9_2,e=1,en=1)
     def Slider(self):
+        if self.mode_ui.is_local():
+            return
         sacv=mc.floatSliderGrp(self.s6,q=1,v=1)
         #mc.floatSliderGrp(self.s7,e=1,v=sacv*4)
         mc.floatSliderGrp(self.s7,e=1,v=(sacv-1)*4+1)
     def check(self):
+        if self.mode_ui.is_local():
+            self.mode_ui.apply()
+            return
         sacv=mc.checkBoxGrp(self.s10,q=1,v1=1)
         if sacv==1:
             mc.checkBoxGrp(self.s10,e=1,en2=1)
@@ -160,15 +171,22 @@ class ik_UI(object):
             mc.checkBoxGrp(self.s10,e=1,en2=0)
             mc.checkBoxGrp(self.s10,e=1,v2=0)
     def establish_loc(self):
+        if self.mode_ui.is_local():
+            try:
+                self.mode_ui.prepare()
+            except Exception as exc:
+                mc.warning(str(exc))
+            return
+        self.reference_mode='ik'
         self.cur=mc.ls(sl=1)
         jnt=mc.floatSliderGrp(self.s7,q=1,v=1)        
         x=mc.optionMenu(self.s8,q=1,v=1)
         y=mc.optionMenu(self.s9,q=1,v=1)
         quantity=mc.floatSliderGrp(self.s6,q=1,v=1)
         if len(self.cur)==0:
-            mc.window(title=u"´íÎó",wh=(150,50))
+            mc.window(title=u"é”™è¯¯",wh=(150,50))
             mc.columnLayout( adjustableColumn=True )
-            mc.text(l=u'ÇëÑ¡ÔñÇúÏß',h=50)
+            mc.text(l=u'è¯·é€‰æ‹©æ›²çº¿',h=50)
             mc.showWindow()
         elif len(self.cur)==1:
             cur=mc.ls(sl=1)[0]
@@ -188,6 +206,15 @@ class ik_UI(object):
                     name=mc.textFieldGrp(self.s5,q=1,tx=1)+'_'+str(i+1)
                 kxj_ik.ik().connect_defined_loc_curve(name,curs,int(jnt),x,y,int(quantity))
     def establish_spline(self):
+        if self.mode_ui.is_local():
+            try:
+                self.mode_ui.create()
+            except Exception as exc:
+                mc.warning(str(exc))
+            return
+        if getattr(self,'reference_mode',None)!='ik':
+            mc.warning('Create IK reference objects first after changing the binding mode.')
+            return
         jnt=mc.floatSliderGrp(self.s7,q=1,v=1)        
         x=mc.optionMenu(self.s8,q=1,v=1)
         y=mc.optionMenu(self.s9,q=1,v=1)
@@ -238,7 +265,7 @@ class ik_UI(object):
         self.dyn_tabulation()
 
             
-    # ´´½¨Ò»¸öĞÂµÄdy¿ØÖÆÆ÷
+    # åˆ›å»ºä¸€ä¸ªæ–°çš„dyæ§åˆ¶å™¨
     def new_dy(self):
         name_f=mc.textFieldGrp(self.s5,q=1,tx=1)
         if ' ' in name_f:
@@ -246,18 +273,18 @@ class ik_UI(object):
         else:
             name=mc.textFieldGrp(self.s5,q=1,tx=1)
         kxj_ik.ik().dynamic(name)
-    # ºÏ²¢dy¿ØÖÆÆ÷
+    # åˆå¹¶dyæ§åˆ¶å™¨
     def combine_dy(self):
         kxj_ik.ik().combine_newdy()
         
-    # ´´½¨dyÅö×²Ìå
+    # åˆ›å»ºdyç¢°æ’ä½“
     def dy_createCollider(self,form):
         sacv=mc.ls(sl=1)
         sacv2=mc.listAttr(sacv[0],st='dynamic')
         if sacv2==None:
-            mc.window(title=u"´íÎó",wh=(150,50))
+            mc.window(title=u"é”™è¯¯",wh=(150,50))
             mc.columnLayout( adjustableColumn=True )
-            mc.text(l=u'ÇëÑ¡Ôñdyn¿ØÖÆÆ÷',h=50)
+            mc.text(l=u'è¯·é€‰æ‹©dynæ§åˆ¶å™¨',h=50)
             mc.showWindow()
         else:
             kxj_ik.ik().createCollider(form)
@@ -266,8 +293,19 @@ class ik_UI(object):
                 
     def deltet_ss(self):
         kxj_ik.ik().delete_s()
+
+    def clear_animation(self,kind):
+        try:
+            if localui.clear_animation(kind):
+                return
+            if kind=='ctrl':
+                kxj_ik.ik().delete_key()
+            else:
+                kxj_ik.ik().delete_jnt_key()
+        except Exception as exc:
+            mc.warning(str(exc))
     
-    # ×Ô¶¯bakeÆğÊ¼½áÊøÖ¡
+    # è‡ªåŠ¨bakeèµ·å§‹ç»“æŸå¸§
     def bake_automatic(self):
         if mc.checkBox(self.d10,q=1,v=1)==1:
             mc.textFieldGrp(self.d8,e=1,en=0)
@@ -275,8 +313,14 @@ class ik_UI(object):
         else:
             mc.textFieldGrp(self.d8,e=1,en=1)
             mc.textFieldGrp(self.d9,e=1,en=1)
-    # bake¶¯»­
+    # bakeåŠ¨ç”»
     def bake(self,a,ctrl_jnt):
+        try:
+            if localui.bake(self,ctrl_jnt):
+                return
+        except Exception as exc:
+            mc.warning(str(exc))
+            return
         #items=mc.textScrollList(a,q=1,ai=1)
         items=[]
         if items==None:
@@ -294,19 +338,19 @@ class ik_UI(object):
             mintime=int(mc.textFieldGrp(self.d8,q=1,tx=1))
             maxtime=int(mc.textFieldGrp(self.d9,q=1,tx=1))
             if mintime>maxtime:
-                mc.window(title=u"´íÎó",wh=(150,50))
+                mc.window(title=u"é”™è¯¯",wh=(150,50))
                 mc.columnLayout( adjustableColumn=True )
-                mc.text(l=u'ÆğÊ¼Ö¡²»ÄÜ´óÓÚ½áÊøÖ¡´íÎó',h=50)
+                mc.text(l=u'èµ·å§‹å¸§ä¸èƒ½å¤§äºç»“æŸå¸§é”™è¯¯',h=50)
                 mc.showWindow()
             elif mintime=='':
-                mc.window(title=u"´íÎó",wh=(150,50))
+                mc.window(title=u"é”™è¯¯",wh=(150,50))
                 mc.columnLayout( adjustableColumn=True )
-                mc.text(l=u'ÆğÊ¼Ö¡²»ÄÜÎª¿Õ',h=50)
+                mc.text(l=u'èµ·å§‹å¸§ä¸èƒ½ä¸ºç©º',h=50)
                 mc.showWindow()
             elif maxtime=='':
-                mc.window(title=u"´íÎó",wh=(150,50))
+                mc.window(title=u"é”™è¯¯",wh=(150,50))
                 mc.columnLayout( adjustableColumn=True )
-                mc.text(l=u'½áÊøÖ¡²»ÄÜÎª¿Õ',h=50)
+                mc.text(l=u'ç»“æŸå¸§ä¸èƒ½ä¸ºç©º',h=50)
                 mc.showWindow()
             else:
                 if ctrl_jnt=='ctrl':
@@ -317,21 +361,24 @@ class ik_UI(object):
     
     
     
-    # »¬¶¯Ëõ·Å
+    # æ»‘åŠ¨ç¼©æ”¾
     def slither_scale(self):
+        if self.mode_ui.is_local():
+            self.mode_ui.apply()
+            return
         if mc.checkBox(self.ss2,q=1,v=1)==0:
             mc.floatSliderGrp(self.ss1,e=1,en=0)
         else:
             mc.floatSliderGrp(self.ss1,e=1,en=1)
-    # ¶¯Á¦Ñ§¿ª¹ØÏÔÊ¾
+    # åŠ¨åŠ›å­¦å¼€å…³æ˜¾ç¤º
     def Color(self):
         label=mc.button(self.d5,q=1,l=1)
-        if label==u'¿ªÆô¶¯Á¦Ñ§':
-            mc.button(self.d5,e=1,l=u'¹Ø±Õ¶¯Á¦Ñ§',bgc=[1,0,0.5])
+        if label==u'å¼€å¯åŠ¨åŠ›å­¦':
+            mc.button(self.d5,e=1,l=u'å…³é—­åŠ¨åŠ›å­¦',bgc=[1,0,0.5])
         else :
-            mc.button(self.d5,e=1,l=u'¿ªÆô¶¯Á¦Ñ§',bgc=[0,1,0.7])
+            mc.button(self.d5,e=1,l=u'å¼€å¯åŠ¨åŠ›å­¦',bgc=[0,1,0.7])
         self.dyn_openclose()
-    # Ë¢ĞÂ¶¯Á¦Ñ§ÁĞ±í
+    # åˆ·æ–°åŠ¨åŠ›å­¦åˆ—è¡¨
     def dyn_tabulation(self):
         mc.textScrollList(self.d2,e=1,ra=1)
         sacv=mc.ls(type='nurbsCurve',l=1)
@@ -342,11 +389,11 @@ class ik_UI(object):
                 sacv2.append(i)       
         mc.textScrollList(self.d2,e=1,a=list(set(sacv2)))
         self.dyn_switch()
-    # Ñ¡×ÅÈ«²¿¶¯Á¦Ñ§ÇúÏß
+    # é€‰ç€å…¨éƒ¨åŠ¨åŠ›å­¦æ›²çº¿
     def select_allDyn_Fun(self):
         all_Dyn=mc.textScrollList(self.d2,q=1,ai=1)
         mc.select(all_Dyn)
-    # ¶¯Á¦Ñ§×´Ì¬ÁĞ±í
+    # åŠ¨åŠ›å­¦çŠ¶æ€åˆ—è¡¨
     def dyn_switch(self):
         mc.textScrollList(self.d4,e=1,ra=1)
         sacv=mc.textScrollList(self.d2,q=1,ai=1)
@@ -365,10 +412,10 @@ class ik_UI(object):
     def dyn_select(self):
         mc.select( mc.textScrollList(self.d2,q=1,si=1))
         
-    # ¶¯Á¦Ñ§¿ªÆô/¹Ø±Õ
+    # åŠ¨åŠ›å­¦å¼€å¯/å…³é—­
     def dyn_openclose(self):
         label=mc.button(self.d5,q=1,l=1)
-        if label==u'¿ªÆô¶¯Á¦Ñ§':
+        if label==u'å¼€å¯åŠ¨åŠ›å­¦':
             openclose=1
         else :
             openclose=0
@@ -376,9 +423,9 @@ class ik_UI(object):
         sacv=mc.ls(sl=1)
         for i in sacv:
             if mc.attributeQuery('simulationMethod',node=i,ex=1)==0:
-                mc.window(title=u"´íÎó",wh=(150,50))
+                mc.window(title=u"é”™è¯¯",wh=(150,50))
                 mc.columnLayout( adjustableColumn=True )
-                mc.text(l=u'ÇëÑ¡Ôñ¶¯Á¦Ñ§¿ØÖÆÆ÷',h=50)
+                mc.text(l=u'è¯·é€‰æ‹©åŠ¨åŠ›å­¦æ§åˆ¶å™¨',h=50)
                 mc.showWindow()
             else:
                 if openclose==1:
@@ -387,7 +434,7 @@ class ik_UI(object):
                     mc.setAttr(i+'.simulationMethod',2)
                 self.dyn_switch()
                 
-    # È¥³ıÒª½áËã¿ØÖÆÆ÷ Ìí¼Ó
+    # å»é™¤è¦ç»“ç®—æ§åˆ¶å™¨ æ·»åŠ 
     def add_remove_ctrl(self,a):
         sacv=mc.ls(sl=1,fl=1)
         if sacv != None:
@@ -397,11 +444,11 @@ class ik_UI(object):
                 mc.textScrollList(a,e=1,append=aditem)
             else:
                 mc.textScrollList(a,e=1,append=sacv)
-    # È¥³ıÒª½áËã¿ØÖÆÆ÷ Çå¿Õ
+    # å»é™¤è¦ç»“ç®—æ§åˆ¶å™¨ æ¸…ç©º
     def delete_remove_ctrl(self,a):
         mc.textScrollList(a,e=1,ra=1)
         
-    # Ñ¡ÔñÁĞ±íÄÚÎïÌå_º¯Êı
+    # é€‰æ‹©åˆ—è¡¨å†…ç‰©ä½“_å‡½æ•°
     def select_remove_ctrl(self,a):
           object=mc.textScrollList(a,q=1,ai=1)
           mc.select(object)

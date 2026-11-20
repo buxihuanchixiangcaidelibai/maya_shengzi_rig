@@ -816,9 +816,9 @@ class ik(object):
                 newdyn_name=i
         newdyn_names=[newdyn_name]
         if len(newdyn_names)!=1:
-            mc.window(title="错误",wh=(150,50))
+            mc.window(title=u"错误",wh=(150,50))
             mc.columnLayout( adjustableColumn=True )
-            mc.text(l='请选择一个新创建的dy控制器',h=50)
+            mc.text(l=u'请选择一个新创建的dy控制器',h=50)
             mc.showWindow()
         else:
             sacv.remove(newdyn_name)
@@ -877,6 +877,8 @@ class ik(object):
     def delete_s(self):
         sacv=mc.ls(sl=1)
         for ii in sacv:
+            if not mc.objExists(ii):
+                continue
             sacv2=mc.listAttr(ii,st='delete_*')
             registered_rig=None
             for marker in (sacv2 or []):
@@ -885,6 +887,11 @@ class ik(object):
                     registered_rig=candidate
                     break
             if registered_rig:
+                if mc.objExists(ii+'.localRopeSystem'):
+                    import splineik_local as _local_mod
+                    local_system=_local_mod.system_of(ii)
+                    if local_system:
+                        _local_mod.freeze_for_delete(local_system)
                 import splineik_path as _path_mod
                 _path_mod.cleanup(registered_rig[:-len('_spline_rig_grp')],ii)
                 owned_nodes=mc.listConnections(registered_rig+'.splineikOwnedNodes',s=True,d=False,shapes=True) or []
@@ -894,9 +901,9 @@ class ik(object):
                 mc.delete([n for n in owned_nodes if mc.objExists(n)]+[registered_rig])
                 continue
             if sacv2==None:
-                mc.window(title="错误",wh=(150,50))
+                mc.window(title=u"错误",wh=(150,50))
                 mc.columnLayout( adjustableColumn=True )
-                mc.text(l='请选择spline第一节控制器',h=50)
+                mc.text(l=u'请选择spline第一节控制器',h=50)
                 mc.showWindow()
             else:               
                 sacv21=[]
